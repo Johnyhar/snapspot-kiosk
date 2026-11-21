@@ -61,18 +61,29 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
 .hero h1{font-family:var(--display);font-weight:800;font-size:clamp(28px,3.6vw,44px);line-height:1.1;margin:0;text-wrap:balance}
 .hero p{margin:6px 0 0;color:var(--muted);font-size:20px}
 .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;flex:1}
-.q{display:flex;flex-direction:column;justify-content:space-between;gap:18px;text-align:left;background:var(--card);
-  border:2px solid var(--line);border-radius:22px;padding:22px;min-height:190px;transition:transform .12s,border-color .12s,box-shadow .12s;
+.q{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:1fr auto;gap:12px 16px;align-items:start;text-align:left;background:var(--card);
+  border:2px solid var(--line);border-radius:22px;padding:20px 22px;min-height:0;transition:transform .12s,border-color .12s,box-shadow .12s;
   box-shadow:0 2px 0 var(--line)}
 .q:active{transform:scale(.98);border-color:var(--accent);box-shadow:0 0 22px rgba(255,79,163,.35)}
 .q .num{font-family:var(--display);font-weight:800;font-size:22px;width:52px;height:52px;border-radius:50%;display:grid;place-items:center;
   background:var(--accent);color:var(--on-accent);font-variant-numeric:tabular-nums;box-shadow:0 0 14px rgba(255,79,163,.5)}
 .q .t{font-family:var(--display);font-weight:700;font-size:clamp(20px,2.1vw,26px);line-height:1.2;text-wrap:balance}
-.q .go{display:flex;align-items:center;gap:8px;font-weight:600;color:var(--accent);font-size:16px}
+.q .t{align-self:center}
+.q .go{grid-column:2;display:flex;align-items:center;gap:8px;font-weight:600;color:var(--accent);font-size:16px}
 .q .go svg{width:22px;height:22px}
-.q.contact{background:var(--card);border-color:var(--cyan);box-shadow:0 0 18px rgba(63,216,230,.18)}
-.q.contact .num{background:var(--cyan);box-shadow:0 0 14px rgba(63,216,230,.5)}
-.q.contact .go{color:var(--cyan)}
+/* contact bar under the grid (not a numbered problem) */
+.cbar{display:flex;align-items:center;gap:18px 24px;flex-wrap:wrap;background:var(--card);border:2px solid var(--cyan);border-radius:22px;
+  padding:16px 22px;box-shadow:0 0 18px rgba(63,216,230,.18)}
+.cbar .ctext{flex:1;min-width:240px;display:flex;flex-direction:column;gap:6px}
+.cbar .ct{font-family:var(--display);font-weight:700;font-size:clamp(20px,2.1vw,26px);line-height:1.2}
+.cbar .cline{display:flex;align-items:center;gap:8px 16px;flex-wrap:wrap}
+.cbar .phone{font-size:clamp(24px,2.4vw,30px)}
+.cbar .status{align-self:center}
+.cbar .qrs{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start}
+.cbar .qrbox{max-width:104px;font-size:13px;line-height:1.25;gap:6px}
+.cbar .qr{width:84px;height:84px;padding:5px}
+.cbar .qsep{width:2px;align-self:stretch;background:var(--line);border-radius:1px}
+.slabel{font-weight:600}
 .foot{display:flex;justify-content:center;color:var(--muted);font-size:15px}
 .foot .qrs{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
 .mini{display:flex;align-items:center;gap:10px;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:8px 14px 8px 8px;cursor:pointer;text-align:left}
@@ -149,7 +160,7 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
   padding:14px 22px;border-radius:14px;font-weight:600;box-shadow:0 10px 30px rgba(20,22,27,.25);max-width:calc(100% - 32px);text-align:center}
 
 @media (max-width:980px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.cols{grid-template-columns:minmax(0,1fr)}}
-@media (max-width:560px){body{font-size:17px}.proto{display:none}.top{flex-wrap:nowrap}.q .num{flex:none}.grid{grid-template-columns:minmax(0,1fr)}.q{min-height:0;flex-direction:row;align-items:center}
+@media (max-width:560px){body{font-size:17px}.proto{display:none}.top{flex-wrap:nowrap}.q .num{flex:none}.grid{grid-template-columns:minmax(0,1fr)}.q{grid-template-columns:auto minmax(0,1fr) auto;grid-template-rows:auto;align-items:center}.q .go{grid-column:3;grid-row:1}.cbar .qsep{display:none}
   .q .go span{display:none}.foot .qrs{margin-left:0}.panel{padding:20px}}
 @media (prefers-reduced-motion:reduce){.ring{animation:none}.q,.zcard,#zoom,.timer .arc{transition:none}}
 </style>
@@ -174,42 +185,40 @@ const STORE = {n:2, el:"Δ. Γούναρη 36, Ναυαρίνου", en:"D. Gouna
 const UI = {
   el:{proto:"Πρωτότυπο", h1:"Χρειάζεστε βοήθεια;", sub:"Πατήστε το πρόβλημά σας για να δείτε τη λύση.",
       tap:"Δείτε τη λύση", back:"Πίσω στις ερωτήσεις", see:"Δείτε στην οθόνη του photobooth",
-      ph:"Ενδεικτικό σχέδιο. Εδώ θα μπει <b>πραγματική φωτογραφία</b> της οθόνης.",
+      ph:"Ενδεικτικά σχέδια. Εδώ θα μπουν <b>πραγματικές φωτογραφίες</b> της οθόνης.",
+      sPrint:"Η επιλογή PRINT, στο τέλος της φωτογράφησης", sBal:"Το υπόλοιπό σας, κάτω από το START",
       contactH:"Επικοινωνήστε μαζί μας", here:"Πείτε μας ότι είστε στο", hours:"Καθημερινά 11:00 – 01:00",
       open:"Είμαστε διαθέσιμοι τώρα", closed:"Εκτός ωραρίου – καλέστε μας αύριο από τις 11:00",
       qCall:"Σκανάρετε για κλήση", qIg:"Μήνυμα στο Instagram", qMaps:"Αφήστε μας κριτική", qInsta:"Ακολουθήστε μας",
-      footer:"Η οθόνη επιστρέφει στην αρχή μετά από 90 δευτερόλεπτα.",
       idle:s=>`Επιστροφή στην αρχή σε ${s}… Αγγίξτε την οθόνη για να συνεχίσετε.`,
-      cTitle:"Κάτι άλλο; Επικοινωνήστε μαζί μας", cFull:"Επικοινωνήστε μαζί μας",
-      cText:"Για οποιοδήποτε άλλο πρόβλημα ή απορία, καλέστε μας ή στείλτε μας μήνυμα στο Instagram."},
+      cTitle:"Κάτι άλλο; Επικοινωνήστε μαζί μας"},
   en:{proto:"Prototype", h1:"Need help?", sub:"Tap your problem to see how to fix it.",
       tap:"See the solution", back:"Back to questions", see:"How it looks on the photobooth screen",
-      ph:"Drawing for illustration. A <b>real photo</b> of the screen will go here.",
+      ph:"Drawings for illustration. <b>Real photos</b> of the screen will go here.",
+      sPrint:"The PRINT option, at the end of the session", sBal:"Your balance, under START",
       contactH:"Contact us", here:"Tell us you're at", hours:"Every day 11:00 – 01:00",
       open:"We're available now", closed:"Outside our hours – call us tomorrow from 11:00",
       qCall:"Scan to call", qIg:"Message on Instagram", qMaps:"Leave us a review", qInsta:"Follow us",
-      footer:"The screen returns to the start after 90 seconds.",
       idle:s=>`Returning to the start in ${s}… Touch the screen to stay.`,
-      cTitle:"Something else? Contact us", cFull:"Contact us",
-      cText:"For any other problem or question, call us or send us a message on Instagram."}
+      cTitle:"Something else? Contact us"}
 };
 
-/* Content from problem1-5.txt (Greek is the source; English is a draft translation). */
+/* Content from problem1-6.txt (Greek is the source; English is a draft translation). */
 const Q = [
-{ n:1, shot:"balance",
-  el:{ t:"Έβαλα 15€ και έβγαλε μόνο μία εκτύπωση", s:[
+{ n:1, shots:["print","balance"],
+  el:{ t:"Έβαλα 15€ για τρεις εκτυπώσεις αλλά έκανε μόνο μία εκτύπωση", s:[
     {h:"Τι συνέβη;", p:["Στο τέλος κάθε φωτογράφησης εμφανίζεται η επιλογή PRINT, όπου διαλέγετε πόσες εκτυπώσεις θέλετε. Αν η επιλογή έμεινε στο 1, το μηχάνημα εκτύπωσε κανονικά μία φωτογραφία."], good:"Μην ανησυχείτε! Τα υπόλοιπα χρήματά σας δεν χάνονται."},
     {h:"Πώς χρησιμοποιώ τα χρήματα που περίσσεψαν;", steps:["Επιστρέψτε στην αρχική οθόνη του photobooth.","Κάτω από την ένδειξη START θα δείτε έναν μικρό αριθμό με κόκκινο χρώμα.","Ο αριθμός αυτός είναι το διαθέσιμο υπόλοιπό σας.","Ξεκινήστε μία νέα φωτογράφηση.","Στο τέλος, στην επιλογή PRINT, επιλέξτε πόσες εκτυπώσεις θέλετε."], good:"Το υπόλοιπό σας θα χρησιμοποιηθεί για την επόμενη αγορά εκτυπώσεων."}]},
-  en:{ t:"I put in €15 but got only one print", s:[
+  en:{ t:"I paid €15 for three prints but got only one", s:[
     {h:"What happened?", p:["At the end of every photo session the screen shows the PRINT option, where you choose how many prints you want. If it stayed at 1, the machine correctly printed one photo."], good:"Don't worry! The rest of your money is not lost."},
     {h:"How do I use the money that's left?", steps:["Go back to the photobooth's start screen.","Under START you will see a small number in red.","That number is your remaining balance.","Start a new photo session.","At the end, on the PRINT option, choose how many prints you want."], good:"Your balance will be used for your next prints."}]}},
-{ n:2, shot:"print",
+{ n:2, shots:["print"],
   el:{ t:"Μου ζητάει επιπλέον χρήματα πριν την εκτύπωση", full:"Έβαλα 5€, έκανα τη φωτογράφηση, αλλά πριν την εκτύπωση μου ζητάει επιπλέον χρήματα", s:[
-    {h:"Τι συμβαίνει;", p:["Πιθανότατα έχετε επιλέξει περισσότερες από μία εκτυπώσεις στην επιλογή PRINT.","Για κάθε φωτογράφηση με 5€ δικαιούστε μία εκτύπωση."]},
-    {h:"Πώς το διορθώνω;", steps:["Πατήστε BACK (βελάκι πίσω) για να επιστρέψετε ένα βήμα πίσω.","Δείτε τον αριθμό στην επιλογή PRINT.","Για μία φωτογράφηση πρέπει να γράφει 1.","Αν γράφει 2 ή περισσότερο, έχετε επιλέξει περισσότερες εκτυπώσεις και γι’ αυτό ζητάει επιπλέον χρήματα.","Αλλάξτε την επιλογή σε 1 και συνεχίστε κανονικά."], warn:"Με 5€ δικαιούστε μία εκτύπωση. Για περισσότερες, επιλέξτε τον αριθμό που θέλετε και προσθέστε το επιπλέον ποσό."}]},
+    {h:"Τι συμβαίνει;", p:["Πιθανότατα έχετε επιλέξει περισσότερες από μία εκτυπώσεις στην επιλογή PRINT.","Για κάθε φωτογράφηση με 5€ δικαιούστε μία εκτύπωση (τα 2 strips θεωρούνται μία εκτύπωση)."]},
+    {h:"Πώς το διορθώνω;", steps:["Πατήστε BACK (βελάκι πίσω) για να επιστρέψετε ένα βήμα πίσω.","Δείτε τον αριθμό στην επιλογή PRINT.","Για μία φωτογράφηση πρέπει να γράφει 1.","Αν γράφει 2 ή περισσότερο, έχετε επιλέξει περισσότερες εκτυπώσεις και γι’ αυτό ζητάει επιπλέον χρήματα.","Αλλάξτε την επιλογή σε 1 και συνεχίστε κανονικά."], warn:"Με 5€ δικαιούστε μία εκτύπωση (τα 2 strips θεωρούνται μία εκτύπωση). Για περισσότερες, επιλέξτε τον αριθμό που θέλετε και προσθέστε το επιπλέον ποσό."}]},
   en:{ t:"It asks for more money before printing", full:"I put in €5 and took my photos, but it asks for more money before printing", s:[
-    {h:"What's happening?", p:["You most likely chose more than one print on the PRINT option.","Each €5 photo session includes one print."]},
-    {h:"How do I fix it?", steps:["Press BACK (the back arrow) to go one step back.","Check the number on the PRINT option.","For one photo session it should say 1.","If it says 2 or more, you chose extra prints, which is why it asks for more money.","Change it to 1 and continue as normal."], warn:"€5 gets you one print. For more, choose the number you want and add the extra amount."}]}},
+    {h:"What's happening?", p:["You most likely chose more than one print on the PRINT option.","Each €5 photo session includes one print (the 2 strips count as one print)."]},
+    {h:"How do I fix it?", steps:["Press BACK (the back arrow) to go one step back.","Check the number on the PRINT option.","For one photo session it should say 1.","If it says 2 or more, you chose extra prints, which is why it asks for more money.","Change it to 1 and continue as normal."], warn:"€5 gets you one print (the 2 strips count as one print). For more, choose the number you want and add the extra amount."}]}},
 { n:3, contact:true,
   el:{ t:"Δεν δέχεται τα κέρματά μου", full:"Το photobooth δεν δέχεται τα κέρματά μου ή δεν αναγνωρίζει το μονόευρό μου", s:[
     {h:"Τι συμβαίνει;", p:["Ορισμένα μονόευρα νέας κοπής μπορεί να μην αναγνωρίζονται σωστά από τον κερματοδέκτη."]},
@@ -229,10 +238,17 @@ const Q = [
 { n:5, contact:true,
   el:{ t:"Κάτι κόλλησε ή βλέπω φωτογραφίες άλλων", full:"Η διαδικασία ξεκίνησε, αλλά κάτι κόλλησε ή εμφανίζονται φωτογραφίες άλλων ατόμων", s:[
     {h:"Τι μπορεί να συμβαίνει;", bul:["Η οθόνη αφής κόλλησε ή δεν ανταποκρίνεται.","Η κάμερα δεν λειτουργεί σωστά.","Η φωτογράφηση διακόπηκε.","Στην εκτύπωση βγαίνουν φωτογραφίες άλλων ατόμων."]},
-    {h:"Τι χρειαζόμαστε να μας πείτε", steps:["Σε ποιο κατάστημα βρίσκεστε.","Ποιο photobooth χρησιμοποιήσατε.","Περίπου τι ώρα έγινε το πρόβλημα.","Τι ακριβώς συνέβη."], warn:"Ζητούμε συγγνώμη για την ταλαιπωρία. Καλέστε μας και θα το λύσουμε."}]},
+    {h:"Τι χρειαζόμαστε να μας πείτε", steps:["Σε ποιο κατάστημα βρίσκεστε.","Ποιο photobooth χρησιμοποιήσατε.","Την ακριβή ώρα που έγινε το πρόβλημα.","Τι ακριβώς συνέβη."], warn:"Ζητούμε συγγνώμη για την ταλαιπωρία. Καλέστε μας και θα το λύσουμε."}]},
   en:{ t:"Something froze, or I see other people's photos", full:"It started, but something froze or other people's photos appear", s:[
     {h:"What might be happening?", bul:["The touch screen froze or doesn't respond.","The camera isn't working properly.","The photo session was interrupted.","The prints show photos of other people."]},
-    {h:"What we need to know", steps:["Which store you are in.","Which photobooth you used.","Roughly what time it happened.","What exactly happened."], warn:"We're sorry for the trouble. Call us and we'll sort it out."}]}}
+    {h:"What we need to know", steps:["Which store you are in.","Which photobooth you used.","The exact time it happened.","What exactly happened."], warn:"We're sorry for the trouble. Call us and we'll sort it out."}]}},
+{ n:6, contact:true,
+  el:{ t:"Η κάρτα μου χρεώθηκε περισσότερο από όσο επέλεξα", full:"Η κάρτα μου χρεώθηκε με μεγαλύτερο ποσό από αυτό που επέλεξα", s:[
+    {h:"Τι μπορεί να συμβαίνει;", p:["Σε ορισμένες περιπτώσεις, ενδέχεται να υπάρχει εκκρεμής συναλλαγή από προηγούμενη χρήση του photobooth.","Αυτό μπορεί να έχει ως αποτέλεσμα να χρεωθείτε διαφορετικό ή μεγαλύτερο ποσό από αυτό που υπολογίζατε."], good:"Μην ανησυχείτε! Επικοινωνήστε μαζί μας για να ελέγξουμε τη συναλλαγή και να δούμε τι ακριβώς συνέβη."},
+    {h:"Τι χρειαζόμαστε να μας πείτε", steps:["Σε ποιο κατάστημα έγινε η συναλλαγή.","Ποιο photobooth χρησιμοποιήσατε.","Τι ώρα ακριβώς έγινε η χρέωση.","Πόσο χρεωθήκατε και πόσο περιμένατε να χρεωθείτε."], warn:"Εντός ωραρίου (11:00–01:00) καλέστε μας για άμεση εξυπηρέτηση. Εκτός ωραρίου, επικοινωνήστε μαζί μας την επόμενη ημέρα. Θα ελέγξουμε το περιστατικό και θα σας ενημερώσουμε."}]},
+  en:{ t:"My card was charged more than I chose", full:"My card was charged a higher amount than I chose", s:[
+    {h:"What might be happening?", p:["In some cases there may be a pending transaction from a previous use of the photobooth.","This can mean you are charged a different or higher amount than you expected."], good:"Don't worry! Contact us and we'll check the transaction to see exactly what happened."},
+    {h:"What we need to know", steps:["Which store the transaction was in.","Which photobooth you used.","The exact time of the charge.","How much you were charged and how much you expected."], warn:"During our hours (11:00–01:00) call us for immediate help. Outside our hours, contact us the next day. We'll check what happened and get back to you."}]}}
 ];
 
 let lang="el", view=null;
@@ -265,19 +281,25 @@ function home(){
   <section class="hero"><h1>${t.h1}</h1><p>${t.sub}</p></section>
   <section class="grid">
     ${Q.map(q=>`<button class="q" id="q${q.n}" data-open="${q.n}"><span class="num">${q.n}</span><span class="t">${q[lang].t}</span><span class="go"><span>${t.tap}</span>${arrow}</span></button>`).join("")}
-    <button class="q contact" id="q6" data-open="contact"><span class="num">6</span><span class="t">${t.cTitle}</span><span class="go"><span>${PHONE}</span>${arrow}</span></button>
   </section>
-  <footer class="foot">
+  <section class="cbar">
+    <div class="ctext">
+      <div class="ct">${t.cTitle}</div>
+      <div class="cline"><span class="phone">${PHONE}</span><span class="status ${isOpen()?"open":"closed"}"><i></i>${isOpen()?t.open:t.closed}</span></div>
+    </div>
     <div class="qrs">
-      <button class="mini" id="qr-insta" data-label="${t.qInsta}&#10;@snapspot.official"><div class="qr" data-qr="${LINKS.insta}"></div><span><b>${t.qInsta}</b>@snapspot.official</span></button>
-      <button class="mini" id="qr-maps" data-label="${t.qMaps}&#10;Google Maps"><div class="qr" data-qr="${LINKS.maps}"></div><span><b>${t.qMaps}</b>Google Maps</span></button>
-    </div></footer>`;
+      <button class="qrbox" id="qr-call-home" data-label="${t.qCall}&#10;${PHONE}"><div class="qr" data-qr="${LINKS.call}"></div>${t.qCall}</button>
+      <button class="qrbox" id="qr-ig-home" data-label="${t.qIg}"><div class="qr" data-qr="${LINKS.ig}"></div>${t.qIg}</button>
+      <span class="qsep" aria-hidden="true"></span>
+      <button class="qrbox" id="qr-insta" data-label="${t.qInsta}&#10;@snapspot.official"><div class="qr" data-qr="${LINKS.insta}"></div>${t.qInsta}</button>
+      <button class="qrbox" id="qr-maps" data-label="${t.qMaps}&#10;Google Maps"><div class="qr" data-qr="${LINKS.maps}"></div>${t.qMaps}</button>
+    </div>
+  </section>`;
 }
-function contactPanel(withText){
+function contactPanel(){
   const t=T(), open=isOpen();
   return `<div class="panel">
     <h2>${t.contactH}</h2>
-    ${withText?`<p>${t.cText}</p>`:""}
     <span class="status ${open?"open":"closed"}"><i></i>${open?t.open:t.closed}</span>
     <div><div class="phone">${PHONE}</div><div class="cap">${t.hours}</div></div>
     <div class="cap">${t.here} <b>SnapSpot #${STORE.n}</b>, ${STORE[lang]}</div>
@@ -286,12 +308,17 @@ function contactPanel(withText){
       <button class="qrbox" id="qr-ig" data-label="${t.qIg}"><div class="qr" data-qr="${LINKS.ig}"></div>${t.qIg}</button>
     </div></div>`;
 }
-function shot(kind){
-  const t=T();
-  const inner = kind==="balance"
+/* Drawn stand-ins for the father's real booth-screen photos. */
+function screenDrawing(kind){
+  return kind==="balance"
     ? `<div><div class="start">START</div><span class="bal">€10<span class="ring"></span></span></div>`
     : `<span class="backbtn">← BACK</span><div class="printrow"><span class="lbl">PRINT</span><span class="pm">−</span><span class="val">1<span class="ring"></span></span><span class="pm">+</span></div>`;
-  return `<div class="panel shot"><h2>${t.see}</h2><div class="screen">${inner}</div><div class="cap">${t.ph}</div></div>`;
+}
+function shots(kinds){
+  const t=T();
+  return `<div class="panel shot"><h2>${t.see}</h2>
+    ${kinds.map(k=>`<div class="slabel">${k==="print"?t.sPrint:t.sBal}</div><div class="screen">${screenDrawing(k)}</div>`).join("")}
+    <div class="cap">${t.ph}</div></div>`;
 }
 function section(s){
   return `<div class="panel"><h2>${s.h}</h2>
@@ -303,13 +330,8 @@ function section(s){
 }
 function detail(id){
   const t=T();
-  if(id==="contact"){
-    return header()+`<div class="bar"><button class="back" id="back" data-home>${backArrow}${t.back}</button></div>
-      <div class="dhead"><span class="num">6</span><h1>${t.cFull}</h1></div>
-      <div class="cols">${contactPanel(true)}<div class="side"></div></div>`;
-  }
   const q=Q.find(x=>x.n==id), c=q[lang];
-  const side=[q.shot?shot(q.shot):"", q.contact?contactPanel(false):""].join("");
+  const side=[q.shots?shots(q.shots):"", q.contact?contactPanel():""].join("");
   return header()+`<div class="bar"><button class="back" id="back" data-home>${backArrow}${t.back}</button></div>
     <div class="dhead"><span class="num">${q.n}</span><h1>${c.full||c.t}</h1></div>
     <div class="cols"><div class="side">${c.s.map(section).join("")}</div><div class="side">${side}</div></div>`;
