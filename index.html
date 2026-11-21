@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>SnapSpot Help Kiosk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Commissioner:wght@500;700;800&family=Inter:wght@400;500;600&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+/* Layout: one screen, two views. Home = header + 3x2 grid of big tappable problem cards. Detail = back bar + steps column + "see it / call us" column. */
+/* Brand (from the SnapSpot Instagram logo): neon-sign pink lettering + cyan glow line on a near-black, purple-tinted wall. Single dark look by design. */
+:root{
+  --bg:#110e18;
+  --card:#1c1827;
+  --ink:#f6f2fb;
+  --muted:#aaa3bb;
+  --line:#322b42;
+  --accent:#ff4fa3;      /* neon pink */
+  --accent-soft:rgba(255,79,163,.16);
+  --cyan:#3fd8e6;        /* neon underline */
+  --on-accent:#14101c;
+  --good:#6fe3a8; --good-soft:rgba(111,227,168,.13);
+  --warn:#ffd166; --warn-soft:rgba(255,209,102,.13);
+  --screen:#07060b;      /* booth screen in illustrations */
+  --display:"Commissioner",system-ui,"Segoe UI",Roboto,sans-serif;
+  --body:"Inter",system-ui,"Segoe UI",Roboto,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:18px;line-height:1.5;
+  -webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.wrap{max-width:1280px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;gap:20px;
+  padding-block:20px 24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* header */
+.top{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.brand{font-family:var(--display);font-weight:800;font-size:28px;letter-spacing:.04em;color:var(--accent);
+  text-shadow:0 0 6px rgba(255,79,163,.85),0 0 18px rgba(255,79,163,.45);border-bottom:3px solid var(--cyan);
+  box-shadow:0 6px 12px -8px var(--cyan);padding-bottom:2px;line-height:1.1}
+.proto{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--warn);background:var(--warn-soft);padding:4px 10px;border-radius:99px}
+.spacer{flex:1}
+.flag{display:grid;place-items:center;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:8px;width:80px;height:60px}
+.flag:active{border-color:var(--cyan)}
+.flag svg{width:58px;height:40px;border-radius:5px;display:block}
+/* idle countdown ring */
+.timer{position:relative;width:60px;height:60px;flex:none}
+.timer svg{width:100%;height:100%;transform:rotate(-90deg);display:block}
+.timer circle{fill:none;stroke-width:4}
+.timer .trk{stroke:var(--line)}
+.timer .arc{stroke:var(--cyan);stroke-dasharray:125.66;stroke-linecap:round;transition:stroke-dashoffset .25s linear,stroke .3s}
+.timer.low .arc{stroke:var(--accent)}
+.timer span{position:absolute;inset:0;display:grid;place-items:center;font-weight:700;font-size:17px;font-variant-numeric:tabular-nums}
+
+/* home */
+.hero{text-align:center}
+.hero h1{font-family:var(--display);font-weight:800;font-size:clamp(28px,3.6vw,44px);line-height:1.1;margin:0;text-wrap:balance}
+.hero p{margin:6px 0 0;color:var(--muted);font-size:20px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;flex:1}
+.q{display:flex;flex-direction:column;justify-content:space-between;gap:18px;text-align:left;background:var(--card);
+  border:2px solid var(--line);border-radius:22px;padding:22px;min-height:190px;transition:transform .12s,border-color .12s,box-shadow .12s;
+  box-shadow:0 2px 0 var(--line)}
+.q:active{transform:scale(.98);border-color:var(--accent);box-shadow:0 0 22px rgba(255,79,163,.35)}
+.q .num{font-family:var(--display);font-weight:800;font-size:22px;width:52px;height:52px;border-radius:50%;display:grid;place-items:center;
+  background:var(--accent);color:var(--on-accent);font-variant-numeric:tabular-nums;box-shadow:0 0 14px rgba(255,79,163,.5)}
+.q .t{font-family:var(--display);font-weight:700;font-size:clamp(20px,2.1vw,26px);line-height:1.2;text-wrap:balance}
+.q .go{display:flex;align-items:center;gap:8px;font-weight:600;color:var(--accent);font-size:16px}
+.q .go svg{width:22px;height:22px}
+.q.contact{background:var(--card);border-color:var(--cyan);box-shadow:0 0 18px rgba(63,216,230,.18)}
+.q.contact .num{background:var(--cyan);box-shadow:0 0 14px rgba(63,216,230,.5)}
+.q.contact .go{color:var(--cyan)}
+.foot{display:flex;justify-content:center;color:var(--muted);font-size:15px}
+.foot .qrs{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+.mini{display:flex;align-items:center;gap:10px;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:8px 14px 8px 8px;cursor:pointer;text-align:left}
+.mini:active,.qrbox:active{border-color:var(--cyan)}
+.qrbox{cursor:pointer;background:none;border:0;padding:0}
+
+/* QR zoom overlay */
+#zoom{position:fixed;inset:0;z-index:20;display:grid;place-items:center;background:rgba(8,6,12,0);transition:background .35s}
+#zoom.on{background:rgba(8,6,12,.8)}
+.zcard{background:#fff;color:#14101c;border-radius:24px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px;
+  width:min(440px,84vw,70vh);transition:transform .35s cubic-bezier(.2,.8,.2,1);box-shadow:0 0 40px rgba(63,216,230,.35)}
+.zqr{width:100%;aspect-ratio:1/1}
+.zqr img,.zqr canvas{width:100%!important;height:100%!important;image-rendering:pixelated}
+.zlabel{font-family:var(--display);font-weight:700;font-size:24px;text-align:center;white-space:pre-line;line-height:1.3}
+.zbar{height:6px;width:100%;background:#e9e6ef;border-radius:3px;overflow:hidden}
+.zbar i{display:block;height:100%;background:var(--accent);transform-origin:left}
+#zoom.on .zbar i{animation:drain 8s linear forwards}
+@keyframes drain{to{transform:scaleX(0)}}
+.mini .qr{width:64px;height:64px}
+.mini b{display:block;color:var(--ink);font-size:15px}
+
+/* detail */
+.bar{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.back{display:flex;align-items:center;gap:10px;background:var(--cyan);color:var(--on-accent);border:0;border-radius:16px;padding:16px 24px;font-weight:600;font-size:19px}
+.back svg{width:24px;height:24px}
+.dhead{display:flex;gap:18px;align-items:flex-start}
+.dhead .num{flex:none;font-family:var(--display);font-weight:800;font-size:26px;width:60px;height:60px;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:var(--on-accent);box-shadow:0 0 14px rgba(255,79,163,.5)}
+.dhead h1{font-family:var(--display);font-weight:800;font-size:clamp(26px,3vw,38px);line-height:1.15;margin:4px 0 0;text-wrap:balance}
+.cols{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:20px;align-items:start}
+.panel{background:var(--card);border:2px solid var(--line);border-radius:22px;padding:24px 26px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.panel h2{font-family:var(--display);font-weight:700;font-size:22px;margin:0}
+.panel p{margin:0;max-width:62ch}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;counter-reset:s}
+.steps li{display:grid;grid-template-columns:40px 1fr;gap:14px;align-items:start;counter-increment:s}
+.steps li::before{content:counter(s);font-family:var(--display);font-weight:800;width:36px;height:36px;border-radius:50%;
+  display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);font-size:18px}
+.bul{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px}
+.note{border-radius:14px;padding:14px 16px;font-weight:600}
+.note.good{background:var(--good-soft);color:var(--good)}
+.note.warn{background:var(--warn-soft);color:var(--warn)}
+.side{display:flex;flex-direction:column;gap:20px;min-width:0}
+
+/* booth screen illustration */
+.shot{display:flex;flex-direction:column;gap:10px}
+.screen{background:var(--screen);border-radius:16px;aspect-ratio:16/10;max-width:100%;position:relative;color:#fff;display:grid;place-items:center;
+  border:8px solid #2b2f3a;overflow:hidden}
+.screen .start{font-family:var(--display);font-weight:800;font-size:clamp(28px,4vw,46px);letter-spacing:.06em;
+  padding:10px 34px;border:3px solid #fff;border-radius:999px;text-align:center}
+.screen .bal{display:block;text-align:center;margin-top:12px;font-family:var(--display);font-weight:800;color:#ff4d6d;font-size:22px;
+  position:relative}
+.ring{position:absolute;border:4px solid #ffd23f;border-radius:999px;inset:-8px -16px;animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.08);opacity:.6}}
+.printrow{display:flex;align-items:center;gap:16px;font-family:var(--display);font-weight:800}
+.printrow .lbl{font-size:24px;letter-spacing:.06em}
+.printrow .pm{width:46px;height:46px;border-radius:50%;border:3px solid #fff;display:grid;place-items:center;font-size:26px}
+.printrow .val{font-size:40px;min-width:56px;text-align:center;position:relative}
+.screen .backbtn{position:absolute;left:14px;top:12px;font-size:15px;opacity:.85;font-weight:600}
+.cap{font-size:14px;color:var(--muted)}
+.cap b{color:var(--warn)}
+
+/* contact */
+.status{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:15px;padding:6px 12px;border-radius:99px;align-self:flex-start}
+.status.open{background:var(--good-soft);color:var(--good)}
+.status.closed{background:var(--warn-soft);color:var(--warn)}
+.status i{width:9px;height:9px;border-radius:50%;background:currentColor}
+.phone{font-family:var(--display);font-weight:800;font-size:clamp(28px,3vw,38px);letter-spacing:.02em;font-variant-numeric:tabular-nums;user-select:text;-webkit-user-select:text}
+.qrrow{display:flex;gap:18px;flex-wrap:wrap}
+.qrbox{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;font-size:15px;font-weight:600;max-width:150px}
+.qr{width:132px;height:132px;padding:8px;background:#fff;border:2px solid var(--line);border-radius:12px;display:grid;place-items:center}
+.qr img,.qr canvas{width:100%!important;height:100%!important;image-rendering:pixelated}
+
+/* idle toast */
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--card);color:var(--ink);border:2px solid var(--cyan);
+  padding:14px 22px;border-radius:14px;font-weight:600;box-shadow:0 10px 30px rgba(20,22,27,.25);max-width:calc(100% - 32px);text-align:center}
+
+@media (max-width:980px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.cols{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:560px){body{font-size:17px}.grid{grid-template-columns:minmax(0,1fr)}.q{min-height:0;flex-direction:row;align-items:center}
+  .q .go span{display:none}.foot .qrs{margin-left:0}.panel{padding:20px}}
+@media (prefers-reduced-motion:reduce){.ring{animation:none}.q,.zcard,#zoom,.timer .arc{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<div class="toast" id="toast" hidden></div>
+<div id="zoom" hidden><div class="zcard"><div class="zqr"></div><div class="zlabel"></div><div class="zbar"><i></i></div></div></div>
+
+<script>
+const PHONE = "2313 045 885";
+const LINKS = {
+  call: "tel:+302313045885",
+  ig: "https://ig.me/m/snapspot.official",
+  insta: "https://www.instagram.com/snapspot.official",
+  maps: "https://maps.google.com/?cid=6494966491961441948"
+};
+const IDLE_MS = 90000, WARN_MS = 10000;
+/* Each tablet is configured for the store it stands in (final version: from the URL, e.g. ?store=2). */
+const STORE = {n:2, el:"Δ. Γούναρη 36, Ναυαρίνου", en:"D. Gounari 36, Navarinou"};
+
+const UI = {
+  el:{proto:"Πρωτότυπο", h1:"Χρειάζεστε βοήθεια;", sub:"Πατήστε το πρόβλημά σας για να δείτε τη λύση.",
+      tap:"Δείτε τη λύση", back:"Πίσω στις ερωτήσεις", see:"Δείτε στην οθόνη του photobooth",
+      ph:"Ενδεικτικό σχέδιο. Εδώ θα μπει <b>πραγματική φωτογραφία</b> της οθόνης.",
+      contactH:"Επικοινωνήστε μαζί μας", here:"Πείτε μας ότι είστε στο", hours:"Καθημερινά 11:00 – 01:00",
+      open:"Είμαστε διαθέσιμοι τώρα", closed:"Εκτός ωραρίου – καλέστε μας αύριο από τις 11:00",
+      qCall:"Σκανάρετε για κλήση", qIg:"Μήνυμα στο Instagram", qMaps:"Αφήστε μας κριτική", qInsta:"Ακολουθήστε μας",
+      footer:"Η οθόνη επιστρέφει στην αρχή μετά από 90 δευτερόλεπτα.",
+      idle:s=>`Επιστροφή στην αρχή σε ${s}… Αγγίξτε την οθόνη για να συνεχίσετε.`,
+      cTitle:"Κάτι άλλο; Επικοινωνήστε μαζί μας", cFull:"Επικοινωνήστε μαζί μας",
+      cText:"Για οποιοδήποτε άλλο πρόβλημα ή απορία, καλέστε μας ή στείλτε μας μήνυμα στο Instagram."},
+  en:{proto:"Prototype", h1:"Need help?", sub:"Tap your problem to see how to fix it.",
+      tap:"See the solution", back:"Back to questions", see:"How it looks on the photobooth screen",
+      ph:"Drawing for illustration. A <b>real photo</b> of the screen will go here.",
+      contactH:"Contact us", here:"Tell us you're at", hours:"Every day 11:00 – 01:00",
+      open:"We're available now", closed:"Outside our hours – call us tomorrow from 11:00",
+      qCall:"Scan to call", qIg:"Message on Instagram", qMaps:"Leave us a review", qInsta:"Follow us",
+      footer:"The screen returns to the start after 90 seconds.",
+      idle:s=>`Returning to the start in ${s}… Touch the screen to stay.`,
+      cTitle:"Something else? Contact us", cFull:"Contact us",
+      cText:"For any other problem or question, call us or send us a message on Instagram."}
+};
+
+/* Content from problem1-5.txt (Greek is the source; English is a draft translation). */
+const Q = [
+{ n:1, shot:"balance",
+  el:{ t:"Έβαλα 15€ και έβγαλε μόνο μία εκτύπωση", s:[
+    {h:"Τι συνέβη;", p:["Στο τέλος κάθε φωτογράφησης εμφανίζεται η επιλογή PRINT, όπου διαλέγετε πόσες εκτυπώσεις θέλετε. Αν η επιλογή έμεινε στο 1, το μηχάνημα εκτύπωσε κανονικά μία φωτογραφία."], good:"Μην ανησυχείτε! Τα υπόλοιπα χρήματά σας δεν χάνονται."},
+    {h:"Πώς χρησιμοποιώ τα χρήματα που περίσσεψαν;", steps:["Επιστρέψτε στην αρχική οθόνη του photobooth.","Κάτω από την ένδειξη START θα δείτε έναν μικρό αριθμό με κόκκινο χρώμα.","Ο αριθμός αυτός είναι το διαθέσιμο υπόλοιπό σας.","Ξεκινήστε μία νέα φωτογράφηση.","Στο τέλος, στην επιλογή PRINT, επιλέξτε πόσες εκτυπώσεις θέλετε."], good:"Το υπόλοιπό σας θα χρησιμοποιηθεί για την επόμενη αγορά εκτυπώσεων."}]},
+  en:{ t:"I put in €15 but got only one print", s:[
+    {h:"What happened?", p:["At the end of every photo session the screen shows the PRINT option, where you choose how many prints you want. If it stayed at 1, the machine correctly printed one photo."], good:"Don't worry! The rest of your money is not lost."},
+    {h:"How do I use the money that's left?", steps:["Go back to the photobooth's start screen.","Under START you will see a small number in red.","That number is your remaining balance.","Start a new photo session.","At the end, on the PRINT option, choose how many prints you want."], good:"Your balance will be used for your next prints."}]}},
+{ n:2, shot:"print",
+  el:{ t:"Μου ζητάει επιπλέον χρήματα πριν την εκτύπωση", full:"Έβαλα 5€, έκανα τη φωτογράφηση, αλλά πριν την εκτύπωση μου ζητάει επιπλέον χρήματα", s:[
+    {h:"Τι συμβαίνει;", p:["Πιθανότατα έχετε επιλέξει περισσότερες από μία εκτυπώσεις στην επιλογή PRINT.","Για κάθε φωτογράφηση με 5€ δικαιούστε μία εκτύπωση."]},
+    {h:"Πώς το διορθώνω;", steps:["Πατήστε BACK (βελάκι πίσω) για να επιστρέψετε ένα βήμα πίσω.","Δείτε τον αριθμό στην επιλογή PRINT.","Για μία φωτογράφηση πρέπει να γράφει 1.","Αν γράφει 2 ή περισσότερο, έχετε επιλέξει περισσότερες εκτυπώσεις και γι’ αυτό ζητάει επιπλέον χρήματα.","Αλλάξτε την επιλογή σε 1 και συνεχίστε κανονικά."], warn:"Με 5€ δικαιούστε μία εκτύπωση. Για περισσότερες, επιλέξτε τον αριθμό που θέλετε και προσθέστε το επιπλέον ποσό."}]},
+  en:{ t:"It asks for more money before printing", full:"I put in €5 and took my photos, but it asks for more money before printing", s:[
+    {h:"What's happening?", p:["You most likely chose more than one print on the PRINT option.","Each €5 photo session includes one print."]},
+    {h:"How do I fix it?", steps:["Press BACK (the back arrow) to go one step back.","Check the number on the PRINT option.","For one photo session it should say 1.","If it says 2 or more, you chose extra prints, which is why it asks for more money.","Change it to 1 and continue as normal."], warn:"€5 gets you one print. For more, choose the number you want and add the extra amount."}]}},
+{ n:3, contact:true,
+  el:{ t:"Δεν δέχεται τα κέρματά μου", full:"Το photobooth δεν δέχεται τα κέρματά μου ή δεν αναγνωρίζει το μονόευρό μου", s:[
+    {h:"Τι συμβαίνει;", p:["Ορισμένα μονόευρα νέας κοπής μπορεί να μην αναγνωρίζονται σωστά από τον κερματοδέκτη."]},
+    {h:"Τι μπορώ να κάνω;", steps:["Δοκιμάστε ένα άλλο κέρμα του 1€.","Ή δοκιμάστε με ένα κέρμα των 2€."]},
+    {h:"Αν δεν έχετε άλλα κέρματα", p:["Μην ανησυχείτε. Μπορούμε να σας επιστρέψουμε το ποσό μέσω IRIS. Στείλτε μας μήνυμα στο Instagram με το ποσό που δεν αναγνωρίστηκε ή καλέστε μας."], warn:"Εκτός ωραρίου: καλέστε μας την επόμενη ημέρα για την επιστροφή του ποσού."}]},
+  en:{ t:"It won't accept my coins", full:"The photobooth won't accept my coins or doesn't recognise my €1 coin", s:[
+    {h:"What's happening?", p:["Some newer €1 coins may not be recognised correctly by the coin slot."]},
+    {h:"What can I do?", steps:["Try a different €1 coin.","Or try a €2 coin."]},
+    {h:"If you have no other coins", p:["Don't worry. We can refund the amount through IRIS. Message us on Instagram with the amount that wasn't recognised, or give us a call."], warn:"Outside our hours: call us the next day and we'll arrange your refund."}]}},
+{ n:4, contact:true,
+  el:{ t:"Έβαλα παραπάνω χρήματα. Πώς παίρνω τα ρέστα;", s:[
+    {h:"Τι πρέπει να γνωρίζω;", p:["Τα μηχανήματά μας δεν δίνουν ρέστα. Αν βάλετε π.χ. 20€ και κάνετε μία φωτογράφηση των 5€, το υπόλοιπο δεν επιστρέφεται αυτόματα."], good:"Μην ανησυχείτε! Μπορούμε να σας εξυπηρετήσουμε."},
+    {h:"Πώς παίρνω τα χρήματά μου πίσω;", steps:["Καλέστε μας (11:00 – 01:00).","Πείτε μας σε ποιο κατάστημα και ποιο photobooth είστε, πόσα χρήματα βάλατε και πόσες φωτογραφήσεις κάνατε.","Μείνετε στον χώρο, ιδανικά μέσα στο photobooth, ώστε να μη γίνει νέα συναλλαγή.","Θα ελέγξουμε τη συναλλαγή και θα σας επιστρέψουμε το ποσό μέσω IRIS."], warn:"Καλέστε μας όσο πιο γρήγορα γίνεται, πριν κάποιος άλλος χρησιμοποιήσει το μηχάνημα."}]},
+  en:{ t:"I put in too much. How do I get my change?", s:[
+    {h:"Good to know", p:["Our machines don't give change. If you put in €20 and take one €5 session, the rest is not returned automatically."], good:"Don't worry! We can help."},
+    {h:"How do I get my money back?", steps:["Call us (11:00 – 01:00).","Tell us which store and which photobooth, how much you put in and how many sessions you took.","Stay nearby, ideally inside the photobooth, so no new transaction starts.","We'll check the transaction and refund the unused amount through IRIS."], warn:"Call us as soon as possible, before someone else uses the machine."}]}},
+{ n:5, contact:true,
+  el:{ t:"Κάτι κόλλησε ή βλέπω φωτογραφίες άλλων", full:"Η διαδικασία ξεκίνησε, αλλά κάτι κόλλησε ή εμφανίζονται φωτογραφίες άλλων ατόμων", s:[
+    {h:"Τι μπορεί να συμβαίνει;", bul:["Η οθόνη αφής κόλλησε ή δεν ανταποκρίνεται.","Η κάμερα δεν λειτουργεί σωστά.","Η φωτογράφηση διακόπηκε.","Στην εκτύπωση βγαίνουν φωτογραφίες άλλων ατόμων."]},
+    {h:"Τι χρειαζόμαστε να μας πείτε", steps:["Σε ποιο κατάστημα βρίσκεστε.","Ποιο photobooth χρησιμοποιήσατε.","Περίπου τι ώρα έγινε το πρόβλημα.","Τι ακριβώς συνέβη."], warn:"Ζητούμε συγγνώμη για την ταλαιπωρία. Καλέστε μας και θα το λύσουμε."}]},
+  en:{ t:"Something froze, or I see other people's photos", full:"It started, but something froze or other people's photos appear", s:[
+    {h:"What might be happening?", bul:["The touch screen froze or doesn't respond.","The camera isn't working properly.","The photo session was interrupted.","The prints show photos of other people."]},
+    {h:"What we need to know", steps:["Which store you are in.","Which photobooth you used.","Roughly what time it happened.","What exactly happened."], warn:"We're sorry for the trouble. Call us and we'll sort it out."}]}}
+];
+
+let lang="el", view=null;
+const app=document.getElementById("app");
+const T=()=>UI[lang];
+const arrow='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+const backArrow='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>';
+
+function isOpen(){
+  const h=+new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Athens",hour:"numeric",hourCycle:"h23"}).format(new Date());
+  return h>=11||h<1;
+}
+const FLAGS = {
+  el:`<svg viewBox="0 0 27 18" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="27" height="18" fill="#0D5EAF"/><g fill="#fff"><rect y="2" width="27" height="2"/><rect y="6" width="27" height="2"/><rect y="10" width="27" height="2"/><rect y="14" width="27" height="2"/></g><rect width="10" height="10" fill="#0D5EAF"/><g fill="#fff"><rect x="4" width="2" height="10"/><rect y="4" width="10" height="2"/></g></svg>`,
+  en:`<svg viewBox="0 0 60 30" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><clipPath id="ukt"><path d="M30,15h30v15zv15h-30zh-30v-15zv-15h30z"/></clipPath><rect width="60" height="30" fill="#012169"/><path d="M0,0L60,30M60,0L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0L60,30M60,0L0,30" clip-path="url(#ukt)" stroke="#C8102E" stroke-width="4"/><path d="M30,0v30M0,15h60" stroke="#fff" stroke-width="10"/><path d="M30,0v30M0,15h60" stroke="#C8102E" stroke-width="6"/></svg>`
+};
+const atRest = ()=> view===null && lang==="el" && scrollY===0;
+function header(){
+  const other = lang==="el" ? "en" : "el";
+  return `<header class="top">
+    <div class="brand">SNAPSPOT.</div><span class="proto">${T().proto}</span>
+    <div class="spacer"></div>
+    <div class="timer" id="timer" ${atRest()?"hidden":""} aria-hidden="true"><svg viewBox="0 0 48 48"><circle class="trk" cx="24" cy="24" r="20"/><circle class="arc" cx="24" cy="24" r="20"/></svg><span>90</span></div>
+    <button class="flag" id="lang" data-lang="${other}" aria-label="${other==="en"?"English":"Ελληνικά"}">${FLAGS[other]}</button>
+    </header>`;
+}
+function home(){
+  const t=T();
+  return header()+`
+  <section class="hero"><h1>${t.h1}</h1><p>${t.sub}</p></section>
+  <section class="grid">
+    ${Q.map(q=>`<button class="q" id="q${q.n}" data-open="${q.n}"><span class="num">${q.n}</span><span class="t">${q[lang].t}</span><span class="go"><span>${t.tap}</span>${arrow}</span></button>`).join("")}
+    <button class="q contact" id="q6" data-open="contact"><span class="num">6</span><span class="t">${t.cTitle}</span><span class="go"><span>${PHONE}</span>${arrow}</span></button>
+  </section>
+  <footer class="foot">
+    <div class="qrs">
+      <button class="mini" id="qr-insta" data-label="${t.qInsta}&#10;@snapspot.official"><div class="qr" data-qr="${LINKS.insta}"></div><span><b>${t.qInsta}</b>@snapspot.official</span></button>
+      <button class="mini" id="qr-maps" data-label="${t.qMaps}&#10;Google Maps"><div class="qr" data-qr="${LINKS.maps}"></div><span><b>${t.qMaps}</b>Google Maps</span></button>
+    </div></footer>`;
+}
+function contactPanel(withText){
+  const t=T(), open=isOpen();
+  return `<div class="panel">
+    <h2>${t.contactH}</h2>
+    ${withText?`<p>${t.cText}</p>`:""}
+    <span class="status ${open?"open":"closed"}"><i></i>${open?t.open:t.closed}</span>
+    <div><div class="phone">${PHONE}</div><div class="cap">${t.hours}</div></div>
+    <div class="cap">${t.here} <b>SnapSpot #${STORE.n}</b>, ${STORE[lang]}</div>
+    <div class="qrrow">
+      <button class="qrbox" id="qr-call" data-label="${t.qCall}&#10;${PHONE}"><div class="qr" data-qr="${LINKS.call}"></div>${t.qCall}</button>
+      <button class="qrbox" id="qr-ig" data-label="${t.qIg}"><div class="qr" data-qr="${LINKS.ig}"></div>${t.qIg}</button>
+    </div></div>`;
+}
+function shot(kind){
+  const t=T();
+  const inner = kind==="balance"
+    ? `<div><div class="start">START</div><span class="bal">€10<span class="ring"></span></span></div>`
+    : `<span class="backbtn">← BACK</span><div class="printrow"><span class="lbl">PRINT</span><span class="pm">−</span><span class="val">1<span class="ring"></span></span><span class="pm">+</span></div>`;
+  return `<div class="panel shot"><h2>${t.see}</h2><div class="screen">${inner}</div><div class="cap">${t.ph}</div></div>`;
+}
+function section(s){
+  return `<div class="panel"><h2>${s.h}</h2>
+    ${(s.p||[]).map(p=>`<p>${p}</p>`).join("")}
+    ${s.bul?`<ul class="bul">${s.bul.map(b=>`<li>${b}</li>`).join("")}</ul>`:""}
+    ${s.steps?`<ol class="steps">${s.steps.map(b=>`<li><span>${b}</span></li>`).join("")}</ol>`:""}
+    ${s.good?`<div class="note good">${s.good}</div>`:""}
+    ${s.warn?`<div class="note warn">${s.warn}</div>`:""}</div>`;
+}
+function detail(id){
+  const t=T();
+  if(id==="contact"){
+    return header()+`<div class="bar"><button class="back" id="back" data-home>${backArrow}${t.back}</button></div>
+      <div class="dhead"><span class="num">6</span><h1>${t.cFull}</h1></div>
+      <div class="cols">${contactPanel(true)}<div class="side"></div></div>`;
+  }
+  const q=Q.find(x=>x.n==id), c=q[lang];
+  const side=[q.shot?shot(q.shot):"", q.contact?contactPanel(false):""].join("");
+  return header()+`<div class="bar"><button class="back" id="back" data-home>${backArrow}${t.back}</button></div>
+    <div class="dhead"><span class="num">${q.n}</span><h1>${c.full||c.t}</h1></div>
+    <div class="cols"><div class="side">${c.s.map(section).join("")}</div><div class="side">${side}</div></div>`;
+}
+function render(){
+  app.innerHTML = view===null ? home() : detail(view);
+  document.documentElement.lang = lang;
+  app.querySelectorAll("[data-qr]").forEach(el=>{
+    if(window.QRCode){ new QRCode(el,{text:el.dataset.qr,width:256,height:256,colorDark:"#14161b",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.M}); el.title=""; }
+    else el.textContent="QR";
+  });
+}
+/* QR zoom: tapped code grows from where it sits to the middle; shrinks back after 8 s or on any tap. */
+const zoom=document.getElementById("zoom"), zcard=zoom.querySelector(".zcard"), zqr=zoom.querySelector(".zqr"), zlabel=zoom.querySelector(".zlabel");
+let zTimer=null, zFrom=null;
+function fromTransform(src){
+  const s=src.getBoundingClientRect(), c=zcard.getBoundingClientRect();
+  return `translate(${s.left+s.width/2-(c.left+c.width/2)}px,${s.top+s.height/2-(c.top+c.height/2)}px) scale(${s.width/c.width})`;
+}
+function openZoom(box){
+  const src=box.querySelector(".qr");
+  zqr.innerHTML="";
+  if(window.QRCode) new QRCode(zqr,{text:src.dataset.qr,width:512,height:512,colorDark:"#14161b",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.M});
+  zqr.removeAttribute("title");
+  zlabel.textContent=box.dataset.label||"";
+  zFrom=src;
+  zoom.classList.remove("on");
+  zcard.style.transition="none"; zcard.style.transform="none";
+  zoom.hidden=false;
+  zcard.style.transform=fromTransform(src);
+  zcard.offsetWidth;                       /* commit start position */
+  zcard.style.transition=""; zcard.style.transform="none";
+  zoom.classList.add("on");
+  clearTimeout(zTimer); zTimer=setTimeout(closeZoom,8000);
+}
+function closeZoom(){
+  if(zoom.hidden) return;
+  clearTimeout(zTimer);
+  zoom.classList.remove("on");
+  zcard.style.transform = (zFrom && document.contains(zFrom)) ? fromTransform(zFrom) : "scale(.5)";
+  setTimeout(()=>{ zoom.hidden=true; zcard.style.transform=""; },350);
+}
+zoom.addEventListener("click",closeZoom);
+
+app.addEventListener("click",e=>{
+  const z=e.target.closest(".mini,.qrbox");
+  if(z){ openZoom(z); return; }
+  const o=e.target.closest("[data-open]"), l=e.target.closest("[data-lang]"), b=e.target.closest("[data-home]");
+  if(o){view=o.dataset.open; render(); window.scrollTo(0,0);}
+  else if(l){lang=l.dataset.lang; render();}
+  else if(b){view=null; render(); window.scrollTo(0,0);}
+});
+
+/* Idle reset: back to the Greek home screen after 90 s without a touch. */
+const toast=document.getElementById("toast");
+let last=Date.now();
+["pointerdown","keydown","scroll","touchstart","wheel"].forEach(ev=>addEventListener(ev,()=>{last=Date.now(); toast.hidden=true;},{passive:true}));
+const RING=125.66; /* 2πr, r=20 */
+setInterval(()=>{
+  const idle=Date.now()-last, rest=atRest(), tm=document.getElementById("timer");
+  if(tm){
+    tm.hidden=rest;
+    const rem=Math.max(0,IDLE_MS-idle);
+    tm.querySelector(".arc").style.strokeDashoffset = RING*(1-rem/IDLE_MS);
+    tm.querySelector("span").textContent = Math.ceil(rem/1000);
+    tm.classList.toggle("low", rem<=WARN_MS);
+  }
+  if(rest){toast.hidden=true;return;}
+  if(idle>=IDLE_MS){closeZoom();view=null;lang="el";render();window.scrollTo(0,0);toast.hidden=true;last=Date.now();}
+  else if(idle>=IDLE_MS-WARN_MS){toast.textContent=T().idle(Math.ceil((IDLE_MS-idle)/1000));toast.hidden=false;}
+},250);
+
+render();
+</script>
+</body>
+</html>
